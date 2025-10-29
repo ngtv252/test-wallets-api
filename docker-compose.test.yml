@@ -1,0 +1,40 @@
+services:
+  postgres_test:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_NAME}_test
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  tests:
+    build:
+      context: .
+      target: test
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres_test
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}_test
+      APP_NAME: "${APP_NAME:-Wallet Service}"
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+      DEBUG: "true"
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: bash -c "alembic upgrade head && pytest tests/ -v --tb=short"
+    restart: "no"
+
