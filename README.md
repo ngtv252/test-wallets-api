@@ -54,7 +54,7 @@ brew install --cask docker
 ### 1. Копируем файлы проекта
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ngtv252/test-wallets-api.git
 ```
 
 ### 2. Настройка переменных окружения
